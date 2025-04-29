@@ -1,6 +1,8 @@
 import { Edit2, MessageSquare, Plus, Search, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
+import { fetchUser, fetchUsers } from "../entites/users/api/userApi"
+import { getUserFromId } from "../entites/users/lib/helpers"
 import {
   Button,
   Card,
@@ -76,14 +78,13 @@ const PostsManager = () => {
       .then((response) => response.json())
       .then((data) => {
         postsData = data
-        return fetch("/api/users?limit=0&select=username,image")
+        return fetchUsers()
       })
-      .then((response) => response.json())
       .then((users) => {
-        usersData = users.users
+        const { users: usersData } = users
         const postsWithUsers = postsData.posts.map((post) => ({
           ...post,
-          author: usersData.find((user) => user.id === post.userId),
+          author: getUserFromId(usersData, post.userId),
         }))
         setPosts(postsWithUsers)
         setTotal(postsData.total)
@@ -133,12 +134,9 @@ const PostsManager = () => {
     }
     setLoading(true)
     try {
-      const [postsResponse, usersResponse] = await Promise.all([
-        fetch(`/api/posts/tag/${tag}`),
-        fetch("/api/users?limit=0&select=username,image"),
-      ])
+      const [postsResponse, usersResponse] = await Promise.all([fetch(`/api/posts/tag/${tag}`), fetchUsers()])
       const postsData = await postsResponse.json()
-      const usersData = await usersResponse.json()
+      const usersData = await usersResponse
 
       const postsWithUsers = postsData.posts.map((post) => ({
         ...post,
@@ -294,8 +292,7 @@ const PostsManager = () => {
   // 사용자 모달 열기
   const openUserModal = async (user) => {
     try {
-      const response = await fetch(`/api/users/${user.id}`)
-      const userData = await response.json()
+      const userData = await fetchUser(user.id)
       setSelectedUser(userData)
       setShowUserModal(true)
     } catch (error) {
