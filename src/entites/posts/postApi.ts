@@ -1,4 +1,4 @@
-import { Post, Posts } from "."
+import { Post, Posts } from "./types"
 
 const postApi = {
   getPosts: async ({ limit, skip }: { limit: number; skip: number }): Promise<Posts> => {

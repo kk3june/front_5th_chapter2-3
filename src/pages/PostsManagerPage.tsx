@@ -2,10 +2,9 @@ import { Edit2, MessageSquare, Plus, Search, ThumbsDown, ThumbsUp, Trash2 } from
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { commentApi } from "../entites/comments/commentApi"
-import { Post } from "../entites/posts"
-
-import { addAuthorToPosts } from "../entites/posts/helper"
+import addAuthorToPosts from "../entites/posts/lib/addAuthorToPost"
 import postApi from "../entites/posts/postApi"
+import { Post } from "../entites/posts/types"
 import { fetchUser, fetchUsers } from "../entites/users/userApi"
 import {
   Button,
