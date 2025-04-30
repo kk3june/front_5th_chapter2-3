@@ -124,13 +124,11 @@ const PostsManager = () => {
     setLoading(true)
     try {
       const [postsResponse, usersResponse] = await Promise.all([postApi.getPostTag(tag), fetchUsers()])
-      const postsData = await postsResponse.json()
-      const usersData = await usersResponse
 
-      const postsWithAuthor: Post[] = addAuthorToPosts(postsData.posts, usersData.users)
+      const postsWithAuthor: Post[] = addAuthorToPosts(postsResponse.posts, usersResponse.users)
 
       setPosts(postsWithAuthor)
-      setTotal(postsData.total)
+      setTotal(postsResponse.total)
     } catch (error) {
       console.error("태그별 게시물 가져오기 오류:", error)
     }
