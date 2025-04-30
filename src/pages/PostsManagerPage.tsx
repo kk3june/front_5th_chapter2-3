@@ -1,10 +1,8 @@
 import { Edit2, MessageSquare, Plus, Search, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { getCommentsByPostId, mutateDeleteComment, postAddComment, putUpdateComment } from "../entites/comments/api"
-import addAuthorToPosts from "../entites/posts/lib/addAuthorToPost"
 
-import { Post } from "../entites/posts/types"
-import { getUser, getUsers } from "../entites/users/api/api"
+import { getUser } from "../entites/users/api/api"
 import {
   Button,
   Card,
@@ -30,11 +28,12 @@ import { Dialog } from "../shared/ui/Dialog"
 import { Select, SelectValue } from "../shared/ui/Select"
 import useQueryParams from "../shared/lib/useQueryParams"
 import { highlightText } from "../shared/lib/highlightText"
-import { getPostBySearchQuery, getPostTag, putUpdatePost, mutateDeletePost } from "../entites/posts/api"
-import { fetchPosts, fetchPostsByTag, fetchTags } from "../features/posts/model"
+import { putUpdatePost, mutateDeletePost } from "../entites/posts/api"
+import { fetchPosts, fetchPostsByTag, fetchTags, searchPosts } from "../features/posts/model"
 import { postsAtom, tagsAtom } from "../entites/posts/model/store"
 import { useAtom } from "jotai"
-import { totalAtom, loadingAtom } from "../shared/model/appStore"
+import { totalAtom, loadingAtom, dialogAtom, closeDialog } from "../shared/model/appStore"
+import { DIALOG_TYPE } from "../shared/model/types"
 
 const PostsManager = () => {
   // post
@@ -42,9 +41,7 @@ const PostsManager = () => {
   const [selectedPost, setSelectedPost] = useState(null)
   const [newPost, setNewPost] = useState({ title: "", body: "", userId: 1 })
   // post dailog
-  const [showAddDialog, setShowAddDialog] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
-  const [showPostDetailDialog, setShowPostDetailDialog] = useState(false)
+  const [dialog, setDialog] = useAtom(dialogAtom)
 
   // tag
   const [tags] = useAtom(tagsAtom)
@@ -53,19 +50,15 @@ const PostsManager = () => {
   const [comments, setComments] = useState({})
   const [selectedComment, setSelectedComment] = useState(null)
   const [newComment, setNewComment] = useState({ body: "", postId: null, userId: 1 })
-  // comment dailog
-  const [showAddCommentDialog, setShowAddCommentDialog] = useState(false)
-  const [showEditCommentDialog, setShowEditCommentDialog] = useState(false)
 
   // user
-  const [showUserModal, setShowUserModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
 
   // pagination
-  const [total, setTotal] = useAtom(totalAtom)
+  const [total] = useAtom(totalAtom)
 
   // loading
-  const [loading, setLoading] = useAtom(loadingAtom)
+  const [loading] = useAtom(loadingAtom)
 
   const {
     skip,
@@ -83,25 +76,6 @@ const PostsManager = () => {
     updateURL,
   } = useQueryParams()
 
-  // 게시물 검색
-  const searchPosts = async () => {
-    if (!searchQuery) {
-      fetchPosts({ limit, skip })
-      return
-    }
-    setLoading(true)
-    try {
-      const posts = await getPostBySearchQuery(searchQuery)
-      setPosts(posts.posts)
-      setTotal(posts.total)
-    } catch (error) {
-      console.error("게시물 검색 오류:", error)
-    }
-    setLoading(false)
-  }
-
-  // 태그별 게시물 가져오기
-
   // 게시물 추가
   const addPost = async () => {
     try {
@@ -112,7 +86,7 @@ const PostsManager = () => {
       })
       const data = await response.json()
       setPosts([data, ...posts])
-      setShowAddDialog(false)
+      closeDialog()
       setNewPost({ title: "", body: "", userId: 1 })
     } catch (error) {
       console.error("게시물 추가 오류:", error)
@@ -125,7 +99,7 @@ const PostsManager = () => {
       const response = await putUpdatePost(selectedPost.id, selectedPost)
       const data = await response.json()
       setPosts(posts.map((post) => (post.id === data.id ? data : post)))
-      setShowEditDialog(false)
+      closeDialog()
     } catch (error) {
       console.error("게시물 업데이트 오류:", error)
     }
@@ -160,7 +134,7 @@ const PostsManager = () => {
         ...prev,
         [newComment.postId]: [...(prev[newComment.postId] || []), newComment],
       }))
-      setShowAddCommentDialog(false)
+      closeDialog()
       setNewComment({ body: "", postId: null, userId: 1 })
     } catch (error) {
       console.error("댓글 추가 오류:", error)
@@ -177,7 +151,7 @@ const PostsManager = () => {
           comment.id === selectedComment.id ? selectedComment : comment,
         ),
       }))
-      setShowEditCommentDialog(false)
+      closeDialog()
     } catch (error) {
       console.error("댓글 업데이트 오류:", error)
     }
@@ -200,7 +174,7 @@ const PostsManager = () => {
   const likeComment = async (id, postId) => {
     try {
       const likes = comments[postId].find((c) => c.id === id).likes + 1
-      await å(id, likes)
+      await (id, likes)
 
       setComments((prev) => ({
         ...prev,
@@ -215,7 +189,7 @@ const PostsManager = () => {
   const openPostDetail = (post) => {
     setSelectedPost(post)
     fetchComments(post.id)
-    setShowPostDetailDialog(true)
+    setDialog(DIALOG_TYPE.DETAIL_POST)
   }
 
   // 사용자 모달 열기
@@ -223,7 +197,7 @@ const PostsManager = () => {
     try {
       const userData = await getUser(user.id)
       setSelectedUser(userData)
-      setShowUserModal(true)
+      setDialog(DIALOG_TYPE.USER)
     } catch (error) {
       console.error("사용자 정보 가져오기 오류:", error)
     }
@@ -306,7 +280,7 @@ const PostsManager = () => {
                   size="sm"
                   onClick={() => {
                     setSelectedPost(post)
-                    setShowEditDialog(true)
+                    setDialog(DIALOG_TYPE.EDIT_POST)
                   }}
                 >
                   <Edit2 className="w-4 h-4" />
@@ -331,7 +305,7 @@ const PostsManager = () => {
           size="sm"
           onClick={() => {
             setNewComment((prev) => ({ ...prev, postId }))
-            setShowAddCommentDialog(true)
+            setDialog(DIALOG_TYPE.ADD_COMMENT)
           }}
         >
           <Plus className="w-3 h-3 mr-1" />
@@ -355,7 +329,7 @@ const PostsManager = () => {
                 size="sm"
                 onClick={() => {
                   setSelectedComment(comment)
-                  setShowEditCommentDialog(true)
+                  setDialog(DIALOG_TYPE.EDIT_COMMENT)
                 }}
               >
                 <Edit2 className="w-3 h-3" />
@@ -375,7 +349,7 @@ const PostsManager = () => {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>게시물 관리자</span>
-          <Button onClick={() => setShowAddDialog(true)}>
+          <Button onClick={() => setDialog(DIALOG_TYPE.ADD_POST)}>
             <Plus className="w-4 h-4 mr-2" />
             게시물 추가
           </Button>
@@ -393,7 +367,7 @@ const PostsManager = () => {
                   className="pl-8"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && searchPosts()}
+                  onKeyPress={(e) => e.key === "Enter" && searchPosts({ limit, skip, searchQuery })}
                 />
               </div>
             </div>
@@ -471,7 +445,7 @@ const PostsManager = () => {
       </CardContent>
 
       {/* 게시물 추가 대화상자 */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+      <Dialog open={dialog === DIALOG_TYPE.ADD_POST} onOpenChange={() => setDialog(DIALOG_TYPE.ADD_POST)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>새 게시물 추가</DialogTitle>
@@ -500,7 +474,7 @@ const PostsManager = () => {
       </Dialog>
 
       {/* 게시물 수정 대화상자 */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+      <Dialog open={dialog === DIALOG_TYPE.EDIT_POST} onOpenChange={() => setDialog(DIALOG_TYPE.EDIT_POST)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>게시물 수정</DialogTitle>
@@ -523,7 +497,7 @@ const PostsManager = () => {
       </Dialog>
 
       {/* 댓글 추가 대화상자 */}
-      <Dialog open={showAddCommentDialog} onOpenChange={setShowAddCommentDialog}>
+      <Dialog open={dialog === DIALOG_TYPE.ADD_COMMENT} onOpenChange={() => setDialog(DIALOG_TYPE.ADD_COMMENT)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>새 댓글 추가</DialogTitle>
@@ -540,7 +514,7 @@ const PostsManager = () => {
       </Dialog>
 
       {/* 댓글 수정 대화상자 */}
-      <Dialog open={showEditCommentDialog} onOpenChange={setShowEditCommentDialog}>
+      <Dialog open={dialog === DIALOG_TYPE.EDIT_COMMENT} onOpenChange={() => setDialog(DIALOG_TYPE.EDIT_COMMENT)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>댓글 수정</DialogTitle>
@@ -557,7 +531,7 @@ const PostsManager = () => {
       </Dialog>
 
       {/* 게시물 상세 보기 대화상자 */}
-      <Dialog open={showPostDetailDialog} onOpenChange={setShowPostDetailDialog}>
+      <Dialog open={dialog === DIALOG_TYPE.DETAIL_POST} onOpenChange={() => setDialog(DIALOG_TYPE.DETAIL_POST)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>{highlightText(selectedPost?.title, searchQuery)}</DialogTitle>
@@ -570,7 +544,7 @@ const PostsManager = () => {
       </Dialog>
 
       {/* 사용자 모달 */}
-      <Dialog open={showUserModal} onOpenChange={setShowUserModal}>
+      <Dialog open={dialog === DIALOG_TYPE.USER} onOpenChange={() => setDialog(DIALOG_TYPE.USER)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>사용자 정보</DialogTitle>

@@ -2,7 +2,7 @@ import { setTotal } from "../../shared/model/appStore"
 
 import { setPosts, setTags } from "../../entites/posts/model/store"
 
-import { getPosts, getPostsTags, getPostTag } from "../../entites/posts/api"
+import { getPostBySearchQuery, getPosts, getPostsTags, getPostTag } from "../../entites/posts/api"
 import { getUsers } from "../../entites/users/api/api"
 import { setLoading } from "../../shared/model/appStore"
 import addAuthorToPosts from "../../entites/posts/lib/addAuthorToPost"
@@ -55,6 +55,30 @@ export const fetchPostsByTag = async ({ limit, skip, tag }: { limit: number; ski
     setTotal(postsResponse.total)
   } catch (error) {
     console.error("태그별 게시물 가져오기 오류:", error)
+  }
+  setLoading(false)
+}
+
+export const searchPosts = async ({
+  limit,
+  skip,
+  searchQuery,
+}: {
+  limit: number
+  skip: number
+  searchQuery: string
+}) => {
+  if (!searchQuery) {
+    fetchPosts({ limit, skip })
+    return
+  }
+  setLoading(true)
+  try {
+    const posts = await getPostBySearchQuery(searchQuery)
+    setPosts(posts.posts)
+    setTotal(posts.total)
+  } catch (error) {
+    console.error("게시물 검색 오류:", error)
   }
   setLoading(false)
 }
