@@ -1,10 +1,10 @@
 import { Edit2, MessageSquare, Plus, Search, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { commentApi } from "../entites/comments/commentApi"
+import { getCommentsByPostId, mutateDeleteComment, postAddComment, putUpdateComment } from "../entites/comments/api"
 import addAuthorToPosts from "../entites/posts/lib/addAuthorToPost"
-import postApi from "../entites/posts/postApi"
+
 import { Post } from "../entites/posts/types"
-import { fetchUser, fetchUsers } from "../entites/users/userApi"
+import { getUser, getUsers } from "../entites/users/api/api"
 import {
   Button,
   Card,
@@ -30,26 +30,45 @@ import { Dialog } from "../shared/ui/Dialog"
 import { Select, SelectValue } from "../shared/ui/Select"
 import useQueryParams from "../shared/lib/useQueryParams"
 import { highlightText } from "../shared/lib/highlightText"
+import {
+  getPosts,
+  getPostsTags,
+  getPostBySearchQuery,
+  getPostTag,
+  putUpdatePost,
+  mutateDeletePost,
+} from "../entites/posts/api"
 
 const PostsManager = () => {
-  // 상태 관리
+  // post
   const [posts, setPosts] = useState<Post[]>([])
-  const [total, setTotal] = useState(0)
-
   const [selectedPost, setSelectedPost] = useState(null)
+  const [newPost, setNewPost] = useState({ title: "", body: "", userId: 1 })
+  // post dailog
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
-  const [newPost, setNewPost] = useState({ title: "", body: "", userId: 1 })
-  const [loading, setLoading] = useState(false)
+  const [showPostDetailDialog, setShowPostDetailDialog] = useState(false)
+
+  // tag
   const [tags, setTags] = useState([])
+
+  // comment
   const [comments, setComments] = useState({})
   const [selectedComment, setSelectedComment] = useState(null)
   const [newComment, setNewComment] = useState({ body: "", postId: null, userId: 1 })
+  // comment dailog
   const [showAddCommentDialog, setShowAddCommentDialog] = useState(false)
   const [showEditCommentDialog, setShowEditCommentDialog] = useState(false)
-  const [showPostDetailDialog, setShowPostDetailDialog] = useState(false)
+
+  // user
   const [showUserModal, setShowUserModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
+
+  // pagination
+  const [total, setTotal] = useState(0)
+
+  // loading
+  const [loading, setLoading] = useState(false)
 
   const {
     skip,
@@ -71,8 +90,8 @@ const PostsManager = () => {
   const fetchPosts = async () => {
     setLoading(true)
     try {
-      const postsData = await postApi.getPosts({ limit, skip })
-      const { users } = await fetchUsers()
+      const postsData = await getPosts({ limit, skip })
+      const { users } = await getUsers()
       const postsWithAuthor: Post[] = addAuthorToPosts(postsData.posts, users)
 
       setPosts(postsWithAuthor)
@@ -87,7 +106,7 @@ const PostsManager = () => {
   // 태그 가져오기
   const fetchTags = async () => {
     try {
-      const tags = await postApi.getPostsTags()
+      const tags = await getPostsTags()
       setTags(tags)
     } catch (error) {
       console.error("태그 가져오기 오류:", error)
@@ -102,7 +121,7 @@ const PostsManager = () => {
     }
     setLoading(true)
     try {
-      const posts = await postApi.getPostBySearchQuery(searchQuery)
+      const posts = await getPostBySearchQuery(searchQuery)
       setPosts(posts.posts)
       setTotal(posts.total)
     } catch (error) {
@@ -119,7 +138,7 @@ const PostsManager = () => {
     }
     setLoading(true)
     try {
-      const [postsResponse, usersResponse] = await Promise.all([postApi.getPostTag(tag), fetchUsers()])
+      const [postsResponse, usersResponse] = await Promise.all([getPostTag(tag), getUsers()])
 
       const postsWithAuthor: Post[] = addAuthorToPosts(postsResponse.posts, usersResponse.users)
 
@@ -151,7 +170,7 @@ const PostsManager = () => {
   // 게시물 업데이트
   const updatePost = async () => {
     try {
-      const response = await postApi.updatePost(selectedPost.id, selectedPost)
+      const response = await putUpdatePost(selectedPost.id, selectedPost)
       const data = await response.json()
       setPosts(posts.map((post) => (post.id === data.id ? data : post)))
       setShowEditDialog(false)
@@ -163,7 +182,7 @@ const PostsManager = () => {
   // 게시물 삭제
   const deletePost = async (id: number) => {
     try {
-      await postApi.deletePost(id)
+      await mutateDeletePost(id)
       setPosts(posts.filter((post) => post.id !== id))
     } catch (error) {
       console.error("게시물 삭제 오류:", error)
@@ -174,7 +193,7 @@ const PostsManager = () => {
   const fetchComments = async (postId) => {
     if (comments[postId]) return // 이미 불러온 댓글이 있으면 다시 불러오지 않음
     try {
-      const response = await commentApi.getCommentsByPostId(postId)
+      const response = await getCommentsByPostId(postId)
       setComments((prev) => ({ ...prev, [postId]: response.comments }))
     } catch (error) {
       console.error("댓글 가져오기 오류:", error)
@@ -184,7 +203,7 @@ const PostsManager = () => {
   // 댓글 추가
   const addComment = async () => {
     try {
-      await commentApi.addComment(newComment)
+      await postAddComment(newComment)
       setComments((prev) => ({
         ...prev,
         [newComment.postId]: [...(prev[newComment.postId] || []), newComment],
@@ -199,7 +218,7 @@ const PostsManager = () => {
   // 댓글 업데이트
   const updateComment = async () => {
     try {
-      await commentApi.updateComment(selectedComment.id, selectedComment)
+      await putUpdateComment(selectedComment.id, selectedComment)
       setComments((prev) => ({
         ...prev,
         [selectedComment.postId]: prev[selectedComment.postId].map((comment) =>
@@ -215,7 +234,7 @@ const PostsManager = () => {
   // 댓글 삭제
   const deleteComment = async (id, postId) => {
     try {
-      await commentApi.deleteComment(id)
+      await mutateDeleteComment(id)
       setComments((prev) => ({
         ...prev,
         [postId]: prev[postId].filter((comment) => comment.id !== id),
@@ -229,7 +248,7 @@ const PostsManager = () => {
   const likeComment = async (id, postId) => {
     try {
       const likes = comments[postId].find((c) => c.id === id).likes + 1
-      await commentApi.likeComment(id, likes)
+      await å(id, likes)
 
       setComments((prev) => ({
         ...prev,
@@ -250,7 +269,7 @@ const PostsManager = () => {
   // 사용자 모달 열기
   const openUserModal = async (user) => {
     try {
-      const userData = await fetchUser(user.id)
+      const userData = await getUser(user.id)
       setSelectedUser(userData)
       setShowUserModal(true)
     } catch (error) {
