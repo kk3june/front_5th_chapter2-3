@@ -30,18 +30,15 @@ import { Dialog } from "../shared/ui/Dialog"
 import { Select, SelectValue } from "../shared/ui/Select"
 import useQueryParams from "../shared/lib/useQueryParams"
 import { highlightText } from "../shared/lib/highlightText"
-import {
-  getPosts,
-  getPostsTags,
-  getPostBySearchQuery,
-  getPostTag,
-  putUpdatePost,
-  mutateDeletePost,
-} from "../entites/posts/api"
+import { getPostBySearchQuery, getPostTag, putUpdatePost, mutateDeletePost } from "../entites/posts/api"
+import { fetchPosts, fetchPostsByTag, fetchTags } from "../features/posts/model"
+import { postsAtom, tagsAtom } from "../entites/posts/model/store"
+import { useAtom } from "jotai"
+import { totalAtom, loadingAtom } from "../shared/model/appStore"
 
 const PostsManager = () => {
   // post
-  const [posts, setPosts] = useState<Post[]>([])
+  const [posts, setPosts] = useAtom(postsAtom)
   const [selectedPost, setSelectedPost] = useState(null)
   const [newPost, setNewPost] = useState({ title: "", body: "", userId: 1 })
   // post dailog
@@ -50,7 +47,7 @@ const PostsManager = () => {
   const [showPostDetailDialog, setShowPostDetailDialog] = useState(false)
 
   // tag
-  const [tags, setTags] = useState([])
+  const [tags] = useAtom(tagsAtom)
 
   // comment
   const [comments, setComments] = useState({})
@@ -65,10 +62,10 @@ const PostsManager = () => {
   const [selectedUser, setSelectedUser] = useState(null)
 
   // pagination
-  const [total, setTotal] = useState(0)
+  const [total, setTotal] = useAtom(totalAtom)
 
   // loading
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useAtom(loadingAtom)
 
   const {
     skip,
@@ -86,37 +83,10 @@ const PostsManager = () => {
     updateURL,
   } = useQueryParams()
 
-  // 게시물 가져오기
-  const fetchPosts = async () => {
-    setLoading(true)
-    try {
-      const postsData = await getPosts({ limit, skip })
-      const { users } = await getUsers()
-      const postsWithAuthor: Post[] = addAuthorToPosts(postsData.posts, users)
-
-      setPosts(postsWithAuthor)
-      setTotal(postsData.total)
-    } catch (error) {
-      console.error("게시물 가져오기 오류:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // 태그 가져오기
-  const fetchTags = async () => {
-    try {
-      const tags = await getPostsTags()
-      setTags(tags)
-    } catch (error) {
-      console.error("태그 가져오기 오류:", error)
-    }
-  }
-
   // 게시물 검색
   const searchPosts = async () => {
     if (!searchQuery) {
-      fetchPosts()
+      fetchPosts({ limit, skip })
       return
     }
     setLoading(true)
@@ -131,24 +101,6 @@ const PostsManager = () => {
   }
 
   // 태그별 게시물 가져오기
-  const fetchPostsByTag = async (tag: string) => {
-    if (!tag || tag === "all") {
-      fetchPosts()
-      return
-    }
-    setLoading(true)
-    try {
-      const [postsResponse, usersResponse] = await Promise.all([getPostTag(tag), getUsers()])
-
-      const postsWithAuthor: Post[] = addAuthorToPosts(postsResponse.posts, usersResponse.users)
-
-      setPosts(postsWithAuthor)
-      setTotal(postsResponse.total)
-    } catch (error) {
-      console.error("태그별 게시물 가져오기 오류:", error)
-    }
-    setLoading(false)
-  }
 
   // 게시물 추가
   const addPost = async () => {
@@ -283,9 +235,9 @@ const PostsManager = () => {
 
   useEffect(() => {
     if (selectedTag) {
-      fetchPostsByTag(selectedTag)
+      fetchPostsByTag({ limit, skip, tag: selectedTag })
     } else {
-      fetchPosts()
+      fetchPosts({ limit, skip })
     }
     updateURL()
   }, [skip, limit, sortBy, sortOrder, selectedTag])
@@ -449,7 +401,7 @@ const PostsManager = () => {
               value={selectedTag}
               onValueChange={(value) => {
                 setSelectedTag(value)
-                fetchPostsByTag(value)
+                fetchPostsByTag({ limit, skip, tag: value })
                 updateURL()
               }}
             >
