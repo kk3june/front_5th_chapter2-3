@@ -2,7 +2,15 @@ import { Edit2, MessageSquare, Plus, Search, ThumbsDown, ThumbsUp, Trash2 } from
 import { useEffect, useState } from "react"
 import { getCommentsByPostId, mutateDeleteComment, postAddComment, putUpdateComment } from "../entites/comments/api"
 
+import { useAtom } from "jotai"
+import { mutateDeletePost, putUpdatePost } from "../entites/posts/api"
+import { postsAtom, tagsAtom } from "../entites/posts/model/store"
 import { getUser } from "../entites/users/api/api"
+import { fetchPosts, fetchPostsByTag, fetchTags, searchPosts } from "../features/posts/model"
+import { highlightText } from "../shared/lib/highlightText"
+import useQueryParams from "../shared/lib/useQueryParams"
+import { closeDialog, dialogAtom, loadingAtom, totalAtom } from "../shared/model/appStore"
+import { DIALOG_TYPE } from "../shared/model/types"
 import {
   Button,
   Card,
@@ -26,14 +34,6 @@ import {
 } from "../shared/ui"
 import { Dialog } from "../shared/ui/Dialog"
 import { Select, SelectValue } from "../shared/ui/Select"
-import useQueryParams from "../shared/lib/useQueryParams"
-import { highlightText } from "../shared/lib/highlightText"
-import { putUpdatePost, mutateDeletePost } from "../entites/posts/api"
-import { fetchPosts, fetchPostsByTag, fetchTags, searchPosts } from "../features/posts/model"
-import { postsAtom, tagsAtom } from "../entites/posts/model/store"
-import { useAtom } from "jotai"
-import { totalAtom, loadingAtom, dialogAtom, closeDialog } from "../shared/model/appStore"
-import { DIALOG_TYPE } from "../shared/model/types"
 
 const PostsManager = () => {
   // post

@@ -1,4 +1,5 @@
 import { atom, getDefaultStore } from "jotai"
+import { Post } from "../types"
 
 export const postsAtom = atom<Post[]>([])
 export const tagsAtom = atom<string[]>([])

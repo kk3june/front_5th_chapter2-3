@@ -18,6 +18,12 @@ export interface Post {
   author?: User
 }
 
+export interface NewPost {
+  title: string
+  body: string
+  userId: number
+}
+
 interface Reaction {
   likes: number
   dislikes: number
