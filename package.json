@@ -1,4 +1,5 @@
 {
+  "homepage": "https://kk3june.github.io/front_5th_chapter2-3",
   "name": "front-end-2-3",
   "private": true,
   "version": "0.0.0",
@@ -9,9 +10,12 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "predeploy": "pnpm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "gh-pages": "^6.3.0",
     "jotai": "^2.12.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
