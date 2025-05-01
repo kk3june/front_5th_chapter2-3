@@ -10,7 +10,7 @@ import {
 
 import { useAtom } from "jotai"
 import { CommentType, NewComment } from "../entites/comments/types"
-import { fetchDeletePost, fetchUpdatePost } from "../entites/posts/api"
+import { fetchAddPost, fetchDeletePost, fetchUpdatePost } from "../entites/posts/api"
 import { postsAtom, tagsAtom } from "../entites/posts/model/store"
 import { Post } from "../entites/posts/types"
 import { getUser } from "../entites/users/api/api"
@@ -18,7 +18,7 @@ import { User } from "../entites/users/types"
 import { getPosts, getPostsByTag, getTags, searchPosts } from "../features/posts/model"
 import { highlightText } from "../shared/lib/highlightText"
 import useQueryParams from "../shared/lib/useQueryParams"
-import { closeDialog, loadingAtom, totalAtom } from "../shared/model/appStore"
+import { loadingAtom, totalAtom } from "../shared/model/appStore"
 import {
   Button,
   Card,
@@ -91,14 +91,9 @@ const PostsManager = () => {
   // 게시물 추가
   const addPost = async () => {
     try {
-      const response = await fetch("/api/posts/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newPost),
-      })
-      const data = await response.json()
+      const data = await fetchAddPost(newPost)
       setPosts([data, ...posts])
-      closeDialog()
+      setShowAddDialog(false)
       setNewPost({ title: "", body: "", userId: 1 })
     } catch (error) {
       console.error("게시물 추가 오류:", error)
@@ -110,10 +105,9 @@ const PostsManager = () => {
     if (!selectedPost) return alert("게시물을 업데이트할 수 없습니다. 다시 시도해주세요.")
 
     try {
-      const response = await fetchUpdatePost(selectedPost.id, selectedPost)
-      const data = await response.json()
+      const data = await fetchUpdatePost(selectedPost.id, selectedPost)
       setPosts(posts.map((post) => (post.id === data.id ? data : post)))
-      closeDialog()
+      setShowEditDialog(false)
     } catch (error) {
       console.error("게시물 업데이트 오류:", error)
     }
@@ -133,8 +127,8 @@ const PostsManager = () => {
   const fetchComments = async (postId: number) => {
     if (comments[postId]) return // 이미 불러온 댓글이 있으면 다시 불러오지 않음
     try {
-      const response = await fetchCommentsByPostId(postId)
-      setComments((prev) => ({ ...prev, [postId]: response.comments }))
+      const data = await fetchCommentsByPostId(postId)
+      setComments((prev) => ({ ...prev, [postId]: data.comments }))
     } catch (error) {
       console.error("댓글 가져오기 오류:", error)
     }
@@ -148,7 +142,7 @@ const PostsManager = () => {
         ...prev,
         [data.postId]: [...(prev[data.postId] || []), data],
       }))
-      closeDialog()
+      setShowAddCommentDialog(false)
       setNewComment({ body: "", postId: null, userId: 1 })
     } catch (error) {
       console.error("댓글 추가 오류:", error)
@@ -166,7 +160,7 @@ const PostsManager = () => {
           comment.id === selectedComment.id ? selectedComment : comment,
         ),
       }))
-      closeDialog()
+      setShowEditCommentDialog(false)
     } catch (error) {
       console.error("댓글 업데이트 오류:", error)
     }
