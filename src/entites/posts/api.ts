@@ -1,6 +1,6 @@
-import { NewPost, Post, Posts } from "./types"
+import { NewPost, PaginatedPosts, Post } from "./types"
 
-export const fetchPosts = async ({ limit, skip }: { limit: number; skip: number }): Promise<Posts> => {
+export const fetchPosts = async ({ limit, skip }: { limit: number; skip: number }): Promise<PaginatedPosts> => {
   const response = await fetch(`/api/posts?limit=${limit}&skip=${skip}`)
   const data = await response.json()
   return data

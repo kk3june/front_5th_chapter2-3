@@ -1,11 +1,13 @@
 import { User } from "../users/types"
 
-export interface Posts {
+export interface PaginatedPosts {
   limit: number
   skip: number
   total: number
-  posts: Post[]
+  posts: PaginationPost[]
 }
+
+export type PaginationPost = Omit<Post, "author">
 
 export interface Post {
   id: number
@@ -15,7 +17,7 @@ export interface Post {
   views: number
   tags: string[]
   reactions: Reaction
-  author?: User
+  author: User
 }
 
 export interface NewPost {

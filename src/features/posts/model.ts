@@ -14,6 +14,7 @@ export const getPosts = async ({ limit, skip }: { limit: number; skip: number })
   try {
     const postsData = await fetchPosts({ limit, skip })
     const { users } = await getUsers()
+
     const postsWithAuthor = addAuthorToPosts(postsData.posts, users)
 
     setPosts(postsWithAuthor)
