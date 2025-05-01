@@ -29,6 +29,12 @@ interface Reaction {
   dislikes: number
 }
 
+export interface Tag {
+  slug: string
+  name: string
+  url: string
+}
+
 export enum DIALOG_TYPE {
   ADD_POST = "add",
   EDIT_POST = "edit",

@@ -21,9 +21,6 @@ import {
   DialogHeader,
   DialogTitle,
   Input,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
   Table,
   TableBody,
   TableCell,
@@ -33,7 +30,10 @@ import {
   Textarea,
 } from "../shared/ui"
 import { Dialog } from "../shared/ui/Dialog"
-import { Select, SelectValue } from "../shared/ui/Select"
+import PaginationSelectBox from "../widgets/ui/PaginationSelectBox"
+import SortBySelectBox from "../widgets/ui/SortBySelectBox"
+import SortOrderSelectBox from "../widgets/ui/SortOrderSelectBox"
+import TagSelectBox from "../widgets/ui/TagSelectBox"
 
 const PostsManager = () => {
   // post
@@ -371,46 +371,16 @@ const PostsManager = () => {
                 />
               </div>
             </div>
-            <Select
-              value={selectedTag}
-              onValueChange={(value) => {
-                setSelectedTag(value)
-                fetchPostsByTag({ limit, skip, tag: value })
-                updateURL()
-              }}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="태그 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">모든 태그</SelectItem>
-                {tags.map((tag) => (
-                  <SelectItem key={tag.url} value={tag.slug}>
-                    {tag.slug}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="정렬 기준" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">없음</SelectItem>
-                <SelectItem value="id">ID</SelectItem>
-                <SelectItem value="title">제목</SelectItem>
-                <SelectItem value="reactions">반응</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={sortOrder} onValueChange={setSortOrder}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="정렬 순서" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="asc">오름차순</SelectItem>
-                <SelectItem value="desc">내림차순</SelectItem>
-              </SelectContent>
-            </Select>
+            <TagSelectBox
+              selectedTag={selectedTag}
+              setSelectedTag={setSelectedTag}
+              updateURL={updateURL}
+              limit={limit}
+              skip={skip}
+              tags={tags}
+            />
+            <SortBySelectBox sortBy={sortBy} setSortBy={setSortBy} />
+            <SortOrderSelectBox sortOrder={sortOrder} setSortOrder={setSortOrder} />
           </div>
 
           {/* 게시물 테이블 */}
@@ -420,16 +390,7 @@ const PostsManager = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <span>표시</span>
-              <Select value={limit.toString()} onValueChange={(value) => setLimit(Number(value))}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="10" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="30">30</SelectItem>
-                </SelectContent>
-              </Select>
+              <PaginationSelectBox limit={limit} setLimit={setLimit} />
               <span>항목</span>
             </div>
             <div className="flex gap-2">

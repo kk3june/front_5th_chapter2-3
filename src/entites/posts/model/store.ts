@@ -1,8 +1,8 @@
 import { atom, getDefaultStore } from "jotai"
-import { Post } from "../types"
+import { Post, Tag } from "../types"
 
 export const postsAtom = atom<Post[]>([])
-export const tagsAtom = atom<string[]>([])
+export const tagsAtom = atom<Tag[]>([])
 
 export const setPosts = (posts: Post[]) => getDefaultStore().set(postsAtom, posts)
-export const setTags = (tags: string[]) => getDefaultStore().set(tagsAtom, tags)
+export const setTags = (tags: Tag[]) => getDefaultStore().set(tagsAtom, tags)
