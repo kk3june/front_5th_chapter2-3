@@ -1,12 +1,13 @@
 import { Edit2, MessageSquare, Plus, Search, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { getCommentsByPostId, mutateDeleteComment, postAddComment, putUpdateComment } from "../entites/comments/api"
+import { fetchAddComment, fetchCommentsByPostId, fetchDeleteComment, fetchUpdateComment } from "../entites/comments/api"
 
 import { useAtom } from "jotai"
-import { mutateDeletePost, putUpdatePost } from "../entites/posts/api"
+import { fetchDeletePost, fetchUpdatePost } from "../entites/posts/api"
 import { postsAtom, tagsAtom } from "../entites/posts/model/store"
+import { Post } from "../entites/posts/types"
 import { getUser } from "../entites/users/api/api"
-import { fetchPosts, fetchPostsByTag, fetchTags, searchPosts } from "../features/posts/model"
+import { getPosts, getPostsByTag, getTags, searchPosts } from "../features/posts/model"
 import { highlightText } from "../shared/lib/highlightText"
 import useQueryParams from "../shared/lib/useQueryParams"
 import { closeDialog, dialogAtom, loadingAtom, totalAtom } from "../shared/model/appStore"
@@ -38,7 +39,7 @@ import TagSelectBox from "../widgets/ui/TagSelectBox"
 const PostsManager = () => {
   // post
   const [posts, setPosts] = useAtom(postsAtom)
-  const [selectedPost, setSelectedPost] = useState(null)
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [newPost, setNewPost] = useState({ title: "", body: "", userId: 1 })
   // post dailog
   const [dialog, setDialog] = useAtom(dialogAtom)
@@ -85,6 +86,7 @@ const PostsManager = () => {
         body: JSON.stringify(newPost),
       })
       const data = await response.json()
+      console.log(data)
       setPosts([data, ...posts])
       closeDialog()
       setNewPost({ title: "", body: "", userId: 1 })
@@ -96,7 +98,7 @@ const PostsManager = () => {
   // 게시물 업데이트
   const updatePost = async () => {
     try {
-      const response = await putUpdatePost(selectedPost.id, selectedPost)
+      const response = await fetchUpdatePost(selectedPost.id, selectedPost)
       const data = await response.json()
       setPosts(posts.map((post) => (post.id === data.id ? data : post)))
       closeDialog()
@@ -108,7 +110,7 @@ const PostsManager = () => {
   // 게시물 삭제
   const deletePost = async (id: number) => {
     try {
-      await mutateDeletePost(id)
+      await fetchDeletePost(id)
       setPosts(posts.filter((post) => post.id !== id))
     } catch (error) {
       console.error("게시물 삭제 오류:", error)
@@ -119,7 +121,7 @@ const PostsManager = () => {
   const fetchComments = async (postId) => {
     if (comments[postId]) return // 이미 불러온 댓글이 있으면 다시 불러오지 않음
     try {
-      const response = await getCommentsByPostId(postId)
+      const response = await fetchCommentsByPostId(postId)
       setComments((prev) => ({ ...prev, [postId]: response.comments }))
     } catch (error) {
       console.error("댓글 가져오기 오류:", error)
@@ -129,7 +131,7 @@ const PostsManager = () => {
   // 댓글 추가
   const addComment = async () => {
     try {
-      await postAddComment(newComment)
+      await fetchAddComment(newComment)
       setComments((prev) => ({
         ...prev,
         [newComment.postId]: [...(prev[newComment.postId] || []), newComment],
@@ -144,7 +146,7 @@ const PostsManager = () => {
   // 댓글 업데이트
   const updateComment = async () => {
     try {
-      await putUpdateComment(selectedComment.id, selectedComment)
+      await fetchUpdateComment(selectedComment.id, selectedComment)
       setComments((prev) => ({
         ...prev,
         [selectedComment.postId]: prev[selectedComment.postId].map((comment) =>
@@ -160,7 +162,7 @@ const PostsManager = () => {
   // 댓글 삭제
   const deleteComment = async (id, postId) => {
     try {
-      await mutateDeleteComment(id)
+      await fetchDeleteComment(id)
       setComments((prev) => ({
         ...prev,
         [postId]: prev[postId].filter((comment) => comment.id !== id),
@@ -204,14 +206,14 @@ const PostsManager = () => {
   }
 
   useEffect(() => {
-    fetchTags()
+    getTags()
   }, [])
 
   useEffect(() => {
     if (selectedTag) {
-      fetchPostsByTag({ limit, skip, tag: selectedTag })
+      getPostsByTag({ limit, skip, tag: selectedTag })
     } else {
-      fetchPosts({ limit, skip })
+      getPosts({ limit, skip })
     }
     updateURL()
   }, [skip, limit, sortBy, sortOrder, selectedTag])

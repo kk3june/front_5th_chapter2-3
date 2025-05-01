@@ -1,10 +1,10 @@
-export const getCommentsByPostId = async (postId: number) => {
+export const fetchCommentsByPostId = async (postId: number) => {
   const response = await fetch(`/api/comments/post/${postId}`)
   const data = await response.json()
   return data
 }
 
-export const postAddComment = async (comment: Comment) => {
+export const fetchAddComment = async (comment: Comment) => {
   const response = await fetch("/api/comments/add", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -14,7 +14,7 @@ export const postAddComment = async (comment: Comment) => {
   return data
 }
 
-export const putUpdateComment = async (id: number, comment: Comment) => {
+export const fetchUpdateComment = async (id: number, comment: Comment) => {
   const response = await fetch(`/api/comments/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -24,7 +24,7 @@ export const putUpdateComment = async (id: number, comment: Comment) => {
   return data
 }
 
-export const mutateDeleteComment = async (id: number) => {
+export const fetchDeleteComment = async (id: number) => {
   const response = await fetch(`/api/comments/${id}`, {
     method: "DELETE",
   })
@@ -32,7 +32,7 @@ export const mutateDeleteComment = async (id: number) => {
   return data
 }
 
-export const patchLikeComment = async (id: number, likes: number) => {
+export const fetchLikeComment = async (id: number, likes: number) => {
   const response = await fetch(`/api/comments/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },

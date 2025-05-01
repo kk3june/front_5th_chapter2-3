@@ -1,5 +1,5 @@
 import { Tag } from "../../entites/posts/types"
-import { fetchPostsByTag } from "../../features/posts/model"
+import { getPostsByTag } from "../../features/posts/model"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../shared/ui/Select"
 
 interface Props {
@@ -16,7 +16,7 @@ function TagSelectBox({ selectedTag, setSelectedTag, updateURL, tags, limit, ski
       value={selectedTag}
       onValueChange={(value) => {
         setSelectedTag(value)
-        fetchPostsByTag({ limit, skip, tag: value })
+        getPostsByTag({ limit, skip, tag: value })
         updateURL()
       }}
     >

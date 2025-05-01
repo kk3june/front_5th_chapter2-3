@@ -2,17 +2,17 @@ import { setTotal } from "../../shared/model/appStore"
 
 import { setPosts, setTags } from "../../entites/posts/model/store"
 
-import { getPostBySearchQuery, getPosts, getPostsTags, getPostTag } from "../../entites/posts/api"
-import { getUsers } from "../../entites/users/api/api"
-import { setLoading } from "../../shared/model/appStore"
+import { fetchPostBySearchQuery, fetchPosts, fetchPostsTags, fetchPostTag } from "../../entites/posts/api"
 import addAuthorToPosts from "../../entites/posts/lib/addAuthorToPost"
 import { Post } from "../../entites/posts/types"
+import { getUsers } from "../../entites/users/api/api"
+import { setLoading } from "../../shared/model/appStore"
 
-export const fetchPosts = async ({ limit, skip }: { limit: number; skip: number }) => {
+export const getPosts = async ({ limit, skip }: { limit: number; skip: number }) => {
   setLoading(true)
 
   try {
-    const postsData = await getPosts({ limit, skip })
+    const postsData = await fetchPosts({ limit, skip })
     const { users } = await getUsers()
     const postsWithAuthor = addAuthorToPosts(postsData.posts, users)
 
@@ -31,23 +31,23 @@ export const fetchPosts = async ({ limit, skip }: { limit: number; skip: number 
   }
 }
 
-export const fetchTags = async () => {
+export const getTags = async () => {
   try {
-    const tags = await getPostsTags()
+    const tags = await fetchPostsTags()
     setTags(tags)
   } catch (error) {
     console.error("태그 가져오기 오류:", error)
   }
 }
 
-export const fetchPostsByTag = async ({ limit, skip, tag }: { limit: number; skip: number; tag: string }) => {
+export const getPostsByTag = async ({ limit, skip, tag }: { limit: number; skip: number; tag: string }) => {
   if (!tag || tag === "all") {
     fetchPosts({ limit, skip })
     return
   }
   setLoading(true)
   try {
-    const [postsResponse, usersResponse] = await Promise.all([getPostTag(tag), getUsers()])
+    const [postsResponse, usersResponse] = await Promise.all([fetchPostTag(tag), getUsers()])
 
     const postsWithAuthor: Post[] = addAuthorToPosts(postsResponse.posts, usersResponse.users)
 
@@ -74,7 +74,7 @@ export const searchPosts = async ({
   }
   setLoading(true)
   try {
-    const posts = await getPostBySearchQuery(searchQuery)
+    const posts = await fetchPostBySearchQuery(searchQuery)
     setPosts(posts.posts)
     setTotal(posts.total)
   } catch (error) {
