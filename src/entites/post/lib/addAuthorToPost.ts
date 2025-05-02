@@ -1,6 +1,6 @@
-import { getUserFromId } from "../../users/lib/getUserFromId"
-import { User } from "../../users/types"
-import { PaginationPost, Post } from "../types"
+import { getUserFromId } from "../../user/lib/getUserFromId"
+import { User } from "../../user/model/types"
+import { PaginationPost, Post } from "../model/types"
 
 export default function addAuthorToPosts(posts: PaginationPost[], users: User[]): Post[] {
   return posts.map((post) => ({

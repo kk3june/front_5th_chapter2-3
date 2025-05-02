@@ -1,11 +1,11 @@
 import { setTotal } from "../../shared/model/appStore"
 
-import { setPosts, setTags } from "../../entites/posts/model/store"
+import { setPosts, setTags } from "../../entites/post/model/store"
 
-import { fetchPostBySearchQuery, fetchPosts, fetchPostsTags, fetchPostTag } from "../../entites/posts/api"
-import addAuthorToPosts from "../../entites/posts/lib/addAuthorToPost"
-import { Post } from "../../entites/posts/types"
-import { getUsers } from "../../entites/users/api/api"
+import { fetchPostBySearchQuery, fetchPosts, fetchPostsTags, fetchPostTag } from "../../entites/post/api"
+import addAuthorToPosts from "../../entites/post/lib/addAuthorToPost"
+import { Post } from "../../entites/post/model/types"
+import { getUsers } from "../../entites/user/api"
 import { setLoading } from "../../shared/model/appStore"
 
 export const getPosts = async ({ limit, skip }: { limit: number; skip: number }) => {

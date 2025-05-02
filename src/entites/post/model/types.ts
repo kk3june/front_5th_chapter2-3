@@ -1,4 +1,4 @@
-import { User } from "../users/types"
+import { User } from "../../user/model/types"
 
 export interface PaginatedPosts {
   limit: number

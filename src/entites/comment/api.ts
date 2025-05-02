@@ -1,4 +1,4 @@
-import { CommentType, NewComment } from "./types"
+import { CommentType, NewComment } from "./model/types"
 
 export const fetchCommentsByPostId = async (postId: number) => {
   const response = await fetch(`/api/comments/post/${postId}`)

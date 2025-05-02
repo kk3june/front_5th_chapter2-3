@@ -6,16 +6,18 @@ import {
   fetchDeleteComment,
   fetchLikeComment,
   fetchUpdateComment,
-} from "../entites/comments/api"
+} from "../entites/comment/api"
 
 import { useAtom } from "jotai"
-import { CommentType, NewComment } from "../entites/comments/types"
-import { fetchAddPost, fetchDeletePost, fetchUpdatePost } from "../entites/posts/api"
-import { postsAtom, tagsAtom } from "../entites/posts/model/store"
-import { Post } from "../entites/posts/types"
-import { getUser } from "../entites/users/api/api"
-import { User } from "../entites/users/types"
-import { getPosts, getPostsByTag, getTags, searchPosts } from "../features/posts/model"
+
+import { fetchAddPost, fetchDeletePost, fetchUpdatePost } from "../entites/post/api"
+import { postsAtom, tagsAtom } from "../entites/post/model/store"
+import { Post } from "../entites/post/model/types"
+import { getUser } from "../entites/user/api"
+
+import { CommentType, NewComment } from "../entites/comment/model/types"
+import { User } from "../entites/user/model/types"
+import { getPosts, getPostsByTag, getTags, searchPosts } from "../features/post/model"
 import { highlightText } from "../shared/lib/highlightText"
 import useQueryParams from "../shared/lib/useQueryParams"
 import { loadingAtom, totalAtom } from "../shared/model/appStore"
@@ -42,6 +44,7 @@ import PaginationSelectBox from "../widgets/ui/PaginationSelectBox"
 import SortBySelectBox from "../widgets/ui/SortBySelectBox"
 import SortOrderSelectBox from "../widgets/ui/SortOrderSelectBox"
 import TagSelectBox from "../widgets/ui/TagSelectBox"
+import UserModal from "../widgets/ui/UserModal"
 
 const PostsManager = () => {
   // post

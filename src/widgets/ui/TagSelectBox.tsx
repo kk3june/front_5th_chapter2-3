@@ -1,5 +1,5 @@
-import { Tag } from "../../entites/posts/types"
-import { getPostsByTag } from "../../features/posts/model"
+import { Tag } from "../../entites/post/model/types"
+import { getPostsByTag } from "../../features/post/model"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../shared/ui/Select"
 
 interface Props {
